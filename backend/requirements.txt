@@ -86,3 +86,6 @@ ultralytics-thop==2.0.20
 uritemplate==4.2.0
 urllib3==2.7.0
 uvicorn==0.51.0
+mysql-connector-python==26.7.0
+
+mysql-connector-python==26.7.0
