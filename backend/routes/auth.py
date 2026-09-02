@@ -1,4 +1,6 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import HTMLResponse
+from pathlib import Path
 from pydantic import BaseModel, EmailStr
 import bcrypt
 import secrets
@@ -15,6 +17,22 @@ router = APIRouter(
 )
 
 
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+RESET_PAGE = BASE_DIR / "templates" / "reset-password.html"
+
+
+@router.get("/reset-password-page", response_class=HTMLResponse)
+async def reset_password_page():
+    if not RESET_PAGE.exists():
+        raise HTTPException(
+            status_code=500,
+            detail="Reset password page not found."
+        )
+
+    return RESET_PAGE.read_text(
+        encoding="utf-8"
+    )
 class SignupRequest(BaseModel):
     name: str
     email: EmailStr
@@ -37,7 +55,7 @@ class ResetPasswordRequest(BaseModel):
 
 
 async def send_reset_email(email: str, token: str):
-    reset_link = f"http://127.0.0.1:8081/reset-password?token={token}"
+    reset_link = f"http://10.70.75.247:8000/auth/reset-password-page?token={token}"
 
     message = EmailMessage()
     message["From"] = Config.SMTP_USERNAME
@@ -61,6 +79,57 @@ If you did not request a password reset, please ignore this email.
 Regards,
 EcoCraft Team
 """
+    )
+
+    message.add_alternative(
+        f"""
+<html>
+  <body>
+    <h2>EcoCraft Password Reset</h2>
+
+    <p>Hello,</p>
+
+    <p>
+      We received a request to reset your EcoCraft password.
+    </p>
+
+    <p>
+      Click the button below to reset your password:
+    </p>
+
+    <p>
+      <a
+        href="{reset_link}"
+        style="
+          display: inline-block;
+          padding: 12px 22px;
+          background-color: #2E8B57;
+          color: white;
+          text-decoration: none;
+          border-radius: 8px;
+          font-weight: bold;
+        "
+      >
+        Reset Password
+      </a>
+    </p>
+
+    <p>
+      This link will expire in 15 minutes.
+    </p>
+
+    <p>
+      If you did not request a password reset, please ignore this email.
+    </p>
+
+    <p>
+      Regards,<br />
+      EcoCraft Team
+    </p>
+  </body>
+</html>
+""",
+        subtype="html",
     )
 
     await aiosmtplib.send(
@@ -309,3 +378,6 @@ def reset_password(data: ResetPasswordRequest):
     finally:
         cursor.close()
         db.close()
+
+
+

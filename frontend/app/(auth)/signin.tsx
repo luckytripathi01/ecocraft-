@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import {
   View,
   Text,
@@ -14,39 +14,20 @@ import {
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
-
+import { router } from "expo-router";
 import { API_URL } from "../../constants/api";
 
-const Password = () => {
-  const { email } = useLocalSearchParams<{ email: string }>();
-
+const SignIn = () => {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Password Rules
-  const hasLength = password.length >= 8;
-  const hasUppercase = /[A-Z]/.test(password);
-  const hasNumber = /[0-9]/.test(password);
-  const hasSpecial = /[!@#$%^&*]/.test(password);
-
-  const isValidPassword =
-    hasLength &&
-    hasUppercase &&
-    hasNumber &&
-    hasSpecial;
-
-  const handleContinue = async () => {
-    if (!email) {
-      Alert.alert("Error", "Email address is missing.");
-      return;
-    }
-
-    if (!isValidPassword) {
+  const handleLogin = async () => {
+    if (!email.trim() || !password) {
       Alert.alert(
-        "Weak Password",
-        "Password must contain at least 8 characters, one uppercase letter, one number and one special character."
+        "Missing Information",
+        "Please enter your email and password."
       );
       return;
     }
@@ -54,53 +35,55 @@ const Password = () => {
     try {
       setLoading(true);
 
-      const response = await fetch(`${API_URL}/auth/signup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: email.split("@")[0],
-          email: email,
-          password: password,
-          phone: null,
-        }),
-      });
+      const response = await fetch(
+        `${API_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email.trim(),
+            password: password,
+          }),
+        }
+      );
 
       const result = await response.json();
 
       if (!response.ok) {
         Alert.alert(
-          "Signup Failed",
-          result?.detail || "Unable to create account."
+          "Login Failed",
+          result?.detail || "Invalid email or password."
         );
         return;
       }
 
+      console.log("Login successful:", result);
+
       Alert.alert(
-        "Account Created",
-        "Your EcoCraft account has been created successfully!",
+        "Login Successful",
+        "Welcome back to EcoCraft!",
         [
           {
             text: "Continue",
-            onPress: () => {
-              router.replace("/(tabs)/home");
-            },
+            onPress: () => router.replace("/(tabs)/home"),
           },
         ]
       );
+
     } catch (error) {
-      console.error("Signup error:", error);
+      console.error("Login error:", error);
 
       Alert.alert(
         "Connection Error",
         `Cannot connect to backend.\n\nMake sure the backend is running on ${API_URL}`
       );
+
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
@@ -128,28 +111,60 @@ const Password = () => {
           <View style={styles.header}>
             <View style={styles.logoContainer}>
               <Ionicons
-                name="lock-closed"
+                name="leaf"
                 size={42}
                 color="#2E8B57"
               />
             </View>
 
-            <Text style={styles.title}>Create Password</Text>
+            <Text style={styles.title}>Welcome Back</Text>
 
             <Text style={styles.subtitle}>
-              Create a strong password to secure your
-            </Text>
-
-            <Text style={styles.subtitle}>
-              EcoCraft account 🌱
+              Sign in to continue your EcoCraft journey ðŸŒ±
             </Text>
           </View>
 
           {/* Card */}
           <View style={styles.card}>
-            <Text style={styles.label}>Password</Text>
+            <Text style={styles.heading}>Login to your account</Text>
 
-            {/* Password Input */}
+            {/* Email */}
+            <Text style={styles.label}>Email Address</Text>
+
+            <View style={styles.inputContainer}>
+              <Ionicons
+                name="mail-outline"
+                size={21}
+                color="#2E8B57"
+              />
+
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your email"
+                placeholderTextColor="#94A3B8"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+
+            {/* Password */}
+            <View style={styles.passwordHeader}>
+              <Text style={styles.label}>Password</Text>
+
+              <TouchableOpacity
+                onPress={() =>
+                  router.push("/(auth)/forgotPassword")
+                }
+              >
+                <Text style={styles.forgotText}>
+                  Forgot Password?
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.inputContainer}>
               <Ionicons
                 name="lock-closed-outline"
@@ -169,7 +184,9 @@ const Password = () => {
               />
 
               <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
+                onPress={() =>
+                  setShowPassword(!showPassword)
+                }
               >
                 <Ionicons
                   name={
@@ -183,39 +200,15 @@ const Password = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Password Rules */}
-            <View style={styles.rulesContainer}>
-              <PasswordRule
-                valid={hasLength}
-                text="At least 8 characters"
-              />
-
-              <PasswordRule
-                valid={hasUppercase}
-                text="One uppercase letter"
-              />
-
-              <PasswordRule
-                valid={hasNumber}
-                text="One number"
-              />
-
-              <PasswordRule
-                valid={hasSpecial}
-                text="One special character"
-              />
-            </View>
-
-            {/* Create Account Button */}
+            {/* Login Button */}
             <TouchableOpacity
               activeOpacity={0.8}
               style={[
-                styles.continueButton,
-                (!isValidPassword || loading) &&
-                  styles.disabledButton,
+                styles.loginButton,
+                loading && styles.disabledButton,
               ]}
-              onPress={handleContinue}
-              disabled={!isValidPassword || loading}
+              onPress={handleLogin}
+              disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator
@@ -224,8 +217,8 @@ const Password = () => {
                 />
               ) : (
                 <>
-                  <Text style={styles.continueText}>
-                    Create Account
+                  <Text style={styles.loginText}>
+                    Login
                   </Text>
 
                   <Ionicons
@@ -236,6 +229,23 @@ const Password = () => {
                 </>
               )}
             </TouchableOpacity>
+
+            {/* Create Account */}
+            <View style={styles.signupContainer}>
+              <Text style={styles.signupText}>
+                Don't have an account?
+              </Text>
+
+              <TouchableOpacity
+                onPress={() =>
+                  router.replace("/(auth)/login")
+                }
+              >
+                <Text style={styles.signupLink}>
+                  Create Account
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Security */}
@@ -248,7 +258,7 @@ const Password = () => {
               />
 
               <Text style={styles.secureText}>
-                Your password is securely encrypted
+                Your account information is secure
               </Text>
             </View>
           </View>
@@ -258,34 +268,7 @@ const Password = () => {
   );
 };
 
-const PasswordRule = ({
-  valid,
-  text,
-}: {
-  valid: boolean;
-  text: string;
-}) => {
-  return (
-    <View style={styles.ruleRow}>
-      <Ionicons
-        name={valid ? "checkmark-circle" : "ellipse-outline"}
-        size={18}
-        color={valid ? "#2E8B57" : "#94A3B8"}
-      />
-
-      <Text
-        style={[
-          styles.ruleText,
-          valid && styles.validRuleText,
-        ]}
-      >
-        {text}
-      </Text>
-    </View>
-  );
-};
-
-export default Password;
+export default SignIn;
 
 const styles = StyleSheet.create({
   flex: {
@@ -351,6 +334,7 @@ const styles = StyleSheet.create({
     color: "#64748B",
     textAlign: "center",
     lineHeight: 22,
+    paddingHorizontal: 10,
   },
 
   card: {
@@ -369,11 +353,31 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 
+  heading: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#1B4332",
+    marginBottom: 25,
+  },
+
   label: {
     fontSize: 15,
     fontWeight: "700",
     color: "#1B4332",
     marginBottom: 10,
+  },
+
+  passwordHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 20,
+  },
+
+  forgotText: {
+    fontSize: 13,
+    color: "#2E8B57",
+    fontWeight: "700",
   },
 
   inputContainer: {
@@ -394,45 +398,44 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
 
-  rulesContainer: {
-    marginTop: 18,
-  },
-
-  ruleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 9,
-  },
-
-  ruleText: {
-    fontSize: 13,
-    color: "#94A3B8",
-    marginLeft: 8,
-  },
-
-  validRuleText: {
-    color: "#2E8B57",
-  },
-
-  continueButton: {
+  loginButton: {
     height: 58,
     borderRadius: 17,
     backgroundColor: "#2E8B57",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 25,
+    marginTop: 28,
   },
 
   disabledButton: {
     backgroundColor: "#A7C9B2",
   },
 
-  continueText: {
+  loginText: {
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "700",
     marginRight: 10,
+  },
+
+  signupContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 24,
+  },
+
+  signupText: {
+    fontSize: 13,
+    color: "#64748B",
+  },
+
+  signupLink: {
+    fontSize: 13,
+    color: "#2E8B57",
+    fontWeight: "800",
+    marginLeft: 5,
   },
 
   bottomContainer: {
@@ -451,3 +454,7 @@ const styles = StyleSheet.create({
     marginLeft: 7,
   },
 });
+
+
+
+

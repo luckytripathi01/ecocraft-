@@ -133,6 +133,16 @@ const CreateAccount = () => {
           By continuing, you agree to our{" "}
           <Text style={styles.link}>Terms & Conditions</Text>
         </Text>
+
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => router.push("../(auth)/signin")}
+        >
+          <Text style={styles.loginText}>
+            Already have an account?{" "}
+            <Text style={styles.loginLink}>Login</Text>
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -171,7 +181,6 @@ const styles = StyleSheet.create({
 
   logo: {
     fontSize: 40,
-    
   },
 
   title: {
@@ -307,6 +316,19 @@ const styles = StyleSheet.create({
     color: "#94A3B8",
     marginTop: 22,
     lineHeight: 18,
+  },
+
+  loginText: {
+    textAlign: "center",
+    fontSize: 12,
+    color: "#94A3B8",
+    marginTop: 18,
+    lineHeight: 18,
+  },
+
+  loginLink: {
+    color: "#2E8B57",
+    fontWeight: "700",
   },
 
   link: {
