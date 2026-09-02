@@ -3,6 +3,7 @@ uvicorn
 python-dotenv
 python-multipart
 pydantic
+email-validator
 mysql-connector-python
 google-genai
 google-api-python-client
@@ -13,3 +14,4 @@ torch
 torchvision
 safetensors
 bcrypt
+aiosmtplib
