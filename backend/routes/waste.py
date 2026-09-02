@@ -1,11 +1,11 @@
 from fastapi import APIRouter, UploadFile, File, Form
 from services.detection_service import detect_waste
 from services.gemini_service import generate_recycling_idea
-from services.guide_service import generate_project_guide
 from services.youtube_service import get_youtube_videos
 
 import os
 import shutil
+import uuid
 
 router = APIRouter(
     prefix="/waste",
@@ -15,7 +15,6 @@ router = APIRouter(
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# COCO Label Mapping
 WASTE_MAPPING = {
     "bottle": "Plastic Bottle",
     "cup": "Plastic Cup",
@@ -37,57 +36,57 @@ async def scan_waste(
     language: str = Form("en")
 ):
 
-    file_path = os.path.join(UPLOAD_FOLDER, image.filename)
+    file_extension = os.path.splitext(image.filename)[1]
+    file_name = f"{uuid.uuid4()}{file_extension}"
+    file_path = os.path.join(UPLOAD_FOLDER, file_name)
 
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(image.file, buffer)
+    try:
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(image.file, buffer)
 
-    detections = detect_waste(file_path)
+        detections = detect_waste(file_path)
 
-    if not detections:
+        if not detections:
+            return {
+                "status": "failed",
+                "message": "No waste detected."
+            }
+
+        final_result = []
+
+        for item in detections:
+
+            label = item["label"]
+            confidence = item["score"]
+
+            waste_name = WASTE_MAPPING.get(
+                label,
+                label.title()
+            )
+
+            ideas = generate_recycling_idea(
+                waste_name,
+                language
+            )
+
+            videos = get_youtube_videos(
+                waste_name
+            )
+
+            final_result.append({
+                "item": waste_name,
+                "confidence": confidence,
+                "ideas": ideas,
+                "videos": videos
+            })
+
         return {
-            "status": "failed",
-            "message": "No waste detected."
+            "status": "success",
+            "language": language,
+            "total_items": len(final_result),
+            "detections": final_result
         }
 
-    final_result = []
-
-    for item in detections:
-
-        label = item["label"]
-        confidence = item["score"]
-
-        waste_name = WASTE_MAPPING.get(label, label.title())
-
-        # AI Ideas
-        ideas = generate_recycling_idea(
-            waste_name,
-            language
-        )
-        print("Ideas type:", type(ideas))
-        print("Ideas value:", ideas)
-        # Step by Step Guide
-        #guide = generate_project_guide(
-         #   waste_name,
-          #  language
-       # )
-
-        # YouTube Videos
-        videos = get_youtube_videos(
-            waste_name
-        )
-
-        final_result.append({
-            "item": waste_name,
-            "confidence": confidence,
-            "ideas": ideas,
-           # "guide": guide,
-            "videos": videos
-        })
-
-    return {
-        "status": "success",
-        "language": language,
-        "total_items": len(final_result),
-        "detections": final_result
-    }
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
