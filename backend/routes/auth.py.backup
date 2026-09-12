@@ -17,22 +17,6 @@ router = APIRouter(
 )
 
 
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-RESET_PAGE = BASE_DIR / "templates" / "reset-password.html"
-
-
-@router.get("/reset-password-page", response_class=HTMLResponse)
-async def reset_password_page():
-    if not RESET_PAGE.exists():
-        raise HTTPException(
-            status_code=500,
-            detail="Reset password page not found."
-        )
-
-    return RESET_PAGE.read_text(
-        encoding="utf-8"
-    )
 class SignupRequest(BaseModel):
     name: str
     email: EmailStr
@@ -56,7 +40,7 @@ class ResetPasswordRequest(BaseModel):
 
 
 async def send_reset_email(email: str, token: str):
-    reset_link = f"http://10.70.75.247:8000/auth/reset-password-page?token={token}"
+    reset_link = f"ecocraft://reset-password?token={token}"
 
     message = EmailMessage()
     message["From"] = Config.SMTP_USERNAME
@@ -149,6 +133,13 @@ def signup(data: SignupRequest):
     cursor = db.cursor(dictionary=True)
 
     try:
+        # Only user and seller can create accounts
+        if data.role not in ["user", "seller"]:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid account type"
+            )
+
         cursor.execute(
             "SELECT user_id FROM users WHERE email = %s",
             (data.email,)
@@ -192,8 +183,7 @@ def signup(data: SignupRequest):
     finally:
         cursor.close()
         db.close()
-
-
+        
 @router.post("/login")
 def login(data: LoginRequest):
     db = get_connection()
@@ -381,6 +371,3 @@ def reset_password(data: ResetPasswordRequest):
     finally:
         cursor.close()
         db.close()
-
-
-

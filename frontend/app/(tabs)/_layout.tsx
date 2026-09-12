@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -70,6 +70,22 @@ const TabsLayout = () => {
         }}
       />
 
+
+      {/* MARKETPLACE TAB */}
+      <Tabs.Screen
+        name="market"
+        options={{
+          title: "Market",
+
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? "storefront" : "storefront-outline"}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
       {/* IDEAS TAB */}
       <Tabs.Screen
         name="ideas"
@@ -106,3 +122,4 @@ const TabsLayout = () => {
 };
 
 export default TabsLayout;
+

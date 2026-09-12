@@ -203,3 +203,133 @@ CREATE TABLE reviews (
         AND 5
     )
 ) ENGINE = InnoDB;   
+
+-- Smart Bins Table
+
+CREATE TABLE smart_bins (
+
+    bin_id VARCHAR(50) NOT NULL,
+
+    location VARCHAR(200),
+
+    status ENUM('active', 'inactive', 'maintenance')
+    NOT NULL DEFAULT 'active',
+
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (bin_id)
+
+) ENGINE = InnoDB;
+
+
+-- Sensor Data History
+
+CREATE TABLE sensor_readings (
+
+    reading_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+    bin_id VARCHAR(50) NOT NULL,
+
+    waste_level FLOAT NOT NULL,
+
+    temperature FLOAT NOT NULL,
+
+    humidity FLOAT NOT NULL,
+
+    gas_level FLOAT NOT NULL,
+
+    priority VARCHAR(20),
+
+    environmental_risk VARCHAR(30),
+
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (reading_id),
+
+    KEY idx_sensor_bin (bin_id),
+
+    CONSTRAINT fk_sensor_bin
+    FOREIGN KEY (bin_id)
+    REFERENCES smart_bins(bin_id)
+    ON DELETE CASCADE
+
+) ENGINE = InnoDB;
+
+
+-- Alerts Table
+
+CREATE TABLE iot_alerts (
+
+    alert_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+    bin_id VARCHAR(50) NOT NULL,
+
+    alert_type VARCHAR(100) NOT NULL,
+
+    message TEXT NOT NULL,
+
+    priority VARCHAR(20) NOT NULL,
+
+    status ENUM('active', 'resolved')
+    NOT NULL DEFAULT 'active',
+
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (alert_id),
+
+    KEY idx_alert_bin (bin_id),
+
+    CONSTRAINT fk_alert_bin
+    FOREIGN KEY (bin_id)
+    REFERENCES smart_bins(bin_id)
+    ON DELETE CASCADE
+
+) ENGINE = InnoDB;
+
+CREATE TABLE smart_bins (
+    bin_id VARCHAR(50) NOT NULL,
+    location VARCHAR(200),
+    status ENUM('active', 'inactive', 'maintenance')
+    NOT NULL DEFAULT 'active',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (bin_id)
+) ENGINE=InnoDB;
+
+
+CREATE TABLE sensor_readings (
+    reading_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    bin_id VARCHAR(50) NOT NULL,
+    waste_level FLOAT NOT NULL,
+    temperature FLOAT NOT NULL,
+    humidity FLOAT NOT NULL,
+    gas_level FLOAT NOT NULL,
+    priority VARCHAR(20),
+    environmental_risk VARCHAR(30),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (reading_id),
+
+    CONSTRAINT fk_sensor_bin
+    FOREIGN KEY (bin_id)
+    REFERENCES smart_bins(bin_id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+CREATE TABLE iot_alerts (
+    alert_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    bin_id VARCHAR(50) NOT NULL,
+    alert_type VARCHAR(100) NOT NULL,
+    message TEXT NOT NULL,
+    priority VARCHAR(20) NOT NULL,
+    status ENUM('active', 'resolved')
+    NOT NULL DEFAULT 'active',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (alert_id),
+
+    CONSTRAINT fk_alert_bin
+    FOREIGN KEY (bin_id)
+    REFERENCES smart_bins(bin_id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;

@@ -24,6 +24,7 @@ const Password = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState("user");
 
   // Password Rules
   const hasLength = password.length >= 8;
@@ -64,6 +65,7 @@ const Password = () => {
           email: email,
           password: password,
           phone: null,
+          role: role,
         }),
       });
 
@@ -84,7 +86,13 @@ const Password = () => {
           {
             text: "Continue",
             onPress: () => {
-              router.replace("/(tabs)/home");
+
+              if (result.role === "seller") {
+                router.replace("/seller" as any);
+              } else {
+                router.replace("/(tabs)/home");
+              }
+
             },
           },
         ]
@@ -206,13 +214,89 @@ const Password = () => {
               />
             </View>
 
+            {/* Account Type Selection */}
+
+            <Text style={styles.label}>Select Account Type</Text>
+
+            <View style={styles.rulesContainer}>
+
+              {/* User */}
+              <TouchableOpacity
+                style={[
+                  styles.roleButton,
+                  role === "user" && styles.selectedRole,
+                ]}
+                onPress={() => setRole("user")}
+              >
+                <Ionicons
+                  name="person-outline"
+                  size={28}
+                  color={role === "user" ? "#FFFFFF" : "#2E8B57"}
+                />
+
+                <Text
+                  style={[
+                    styles.ruleText,
+                    role === "user" && styles.selectedRoleText,
+                  ]}
+                >
+                  User
+                </Text>
+
+                <Text
+                  style={[
+                    styles.roleDescription,
+                    role === "user" && styles.selectedRoleText,
+                  ]}
+                >
+                  Explore & Create
+                </Text>
+
+              </TouchableOpacity>
+
+
+              {/* Seller */}
+              <TouchableOpacity
+                style={[
+                  styles.roleButton,
+                  role === "seller" && styles.selectedRole,
+                ]}
+                onPress={() => setRole("seller")}
+              >
+                <Ionicons
+                  name="storefront-outline"
+                  size={28}
+                  color={role === "seller" ? "#FFFFFF" : "#2E8B57"}
+                />
+
+                <Text
+                  style={[
+                    styles.ruleText,
+                    role === "seller" && styles.selectedRoleText,
+                  ]}
+                >
+                  Seller
+                </Text>
+
+                <Text
+                  style={[
+                    styles.roleDescription,
+                    role === "seller" && styles.selectedRoleText,
+                  ]}
+                >
+                  Sell Products
+                </Text>
+
+              </TouchableOpacity>
+
+            </View>
             {/* Create Account Button */}
             <TouchableOpacity
               activeOpacity={0.8}
               style={[
                 styles.continueButton,
                 (!isValidPassword || loading) &&
-                  styles.disabledButton,
+                styles.disabledButton,
               ]}
               onPress={handleContinue}
               disabled={!isValidPassword || loading}
@@ -396,6 +480,34 @@ const styles = StyleSheet.create({
 
   rulesContainer: {
     marginTop: 18,
+  },
+
+  roleButton: {
+    minHeight: 82,
+    borderWidth: 1.5,
+    borderColor: "#DDE5DF",
+    borderRadius: 17,
+    backgroundColor: "#F8FAFC",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+
+  selectedRole: {
+    backgroundColor: "#2E8B57",
+    borderColor: "#2E8B57",
+  },
+
+  selectedRoleText: {
+    color: "#FFFFFF",
+  },
+
+  roleDescription: {
+    flex: 1,
+    fontSize: 12,
+    color: "#64748B",
+    marginLeft: 12,
   },
 
   ruleRow: {
