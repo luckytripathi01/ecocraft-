@@ -203,3 +203,47 @@ CREATE TABLE reviews (
         AND 5
     )
 ) ENGINE = InnoDB;   
+-- ============================================
+-- ECOCRAFT XP & CERTIFICATE SYSTEM
+-- ============================================
+
+CREATE TABLE xp_transactions (
+    xp_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id INT UNSIGNED NOT NULL,
+    activity_type VARCHAR(100) NOT NULL,
+    xp_earned INT NOT NULL,
+    description VARCHAR(255),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (xp_id),
+    KEY idx_xp_user (user_id),
+
+    CONSTRAINT fk_xp_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+
+CREATE TABLE certificates (
+    certificate_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id INT UNSIGNED NOT NULL,
+    certificate_number VARCHAR(50) NOT NULL,
+    user_name VARCHAR(100) NOT NULL,
+    tier ENUM('Bronze', 'Silver', 'Gold', 'Diamond') NOT NULL,
+    xp INT UNSIGNED NOT NULL,
+    issue_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    verification_code VARCHAR(100) NOT NULL,
+
+    PRIMARY KEY (certificate_id),
+
+    UNIQUE KEY uq_certificate_number (certificate_number),
+    UNIQUE KEY uq_verification_code (verification_code),
+
+    KEY idx_certificate_user (user_id),
+
+    CONSTRAINT fk_certificate_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+) ENGINE = InnoDB;
